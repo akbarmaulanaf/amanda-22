@@ -101,7 +101,7 @@
         animation: fadeUp 1.2s ease forwards;
         padding: 20px;
         width: 90%;
-        max-width: 480px;
+        max-width: 1080px;
       }
 
       #autoplay-icon {
@@ -114,7 +114,7 @@
       #autoplay-title {
         font-family: "Playfair Display", serif;
         font-style: italic;
-        font-size: clamp(1.5rem, 5vw, 4rem);
+        font-size: clamp(1rem, 4vw, 3rem);
         color: #e8d5b0;
         margin-bottom: 20px;
         line-height: 1.2;
@@ -1466,6 +1466,28 @@
           if (!active) return;
           active = false;
           el.style.zIndex = "";
+
+          // Clamp back inside garden bounds so flower never disappears
+          const pRect = flowersCont.getBoundingClientRect();
+          const size = el.offsetWidth || 48;
+          const maxX = pRect.width - size;
+          const maxY = pRect.height - size;
+          let curX = parseFloat(el.style.left) || 0;
+          let curY = parseFloat(el.style.top) || 0;
+
+          const clampedX = Math.max(0, Math.min(curX, maxX));
+          const clampedY = Math.max(0, Math.min(curY, maxY));
+
+          // If out of bounds, animate back smoothly
+          if (curX !== clampedX || curY !== clampedY) {
+            el.style.transition = "left 0.4s cubic-bezier(0.22,1,0.36,1), top 0.4s cubic-bezier(0.22,1,0.36,1)";
+            el.style.left = clampedX + "px";
+            el.style.top = clampedY + "px";
+            setTimeout(() => {
+              el.style.transition = "";
+            }, 420);
+          }
+
           const idx = Array.from(flowersCont.children).indexOf(el);
           const floatDur = 3 + ((idx * 0.17) % 2.5);
           const spinDur = 7 + ((idx * 0.31) % 9);
